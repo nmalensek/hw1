@@ -3,6 +3,9 @@ package networkcommunication.transport;
 import networkcommunication.messaging.*;
 import networkcommunication.messaging.Event;
 import networkcommunication.messaging.message.Message;
+import networkcommunication.messaging.storenetworkinfo.MessagingNodesList;
+import networkcommunication.messaging.storenetworkinfo.MessagingNodesListReceive;
+import networkcommunication.messaging.task.ReadyReceive;
 import networkcommunication.messaging.task.TaskComplete;
 import networkcommunication.messaging.task.TaskInitiate;
 import networkcommunication.messaging.traffic.PullTrafficSummary;
@@ -58,6 +61,7 @@ public class TCPReceiverThread extends Thread implements Protocol {
     /**
      * Reads first line of message to determine the message type, then passes that to a switch statement to process
      * the message the rest of the way and pass it to the node.
+     *
      * @param marshalledBytes packaged message
      * @throws IOException
      */
@@ -71,6 +75,16 @@ public class TCPReceiverThread extends Thread implements Protocol {
         dataInputStream.close();
 
         switch (messageType) {
+            case MESSAGING_NODES_LIST:
+                Event<MessagingNodesListReceive> receiveMessagingListEvent =
+                        eventFactory.receiveMessagingList(marshalledBytes);
+                node.onEvent(receiveMessagingListEvent, communicationSocket);
+                break;
+            case READY:
+                Event<ReadyReceive> receiveReadyEvent =
+                        eventFactory.receiveReadyMessage(marshalledBytes);
+                node.onEvent(receiveReadyEvent, communicationSocket);
+                break;
             case TASK_INITIATE:
                 Event<TaskInitiate> receiveTaskInitiateEvent =
                         eventFactory.receiveTaskInitiate(marshalledBytes);

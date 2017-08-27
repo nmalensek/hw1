@@ -2,6 +2,9 @@ package networkcommunication.messaging.eventfactory;
 
 import networkcommunication.messaging.Event;
 import networkcommunication.messaging.message.Message;
+import networkcommunication.messaging.storenetworkinfo.MessagingNodesList;
+import networkcommunication.messaging.storenetworkinfo.MessagingNodesListReceive;
+import networkcommunication.messaging.task.ReadyReceive;
 import networkcommunication.messaging.task.TaskComplete;
 import networkcommunication.messaging.task.TaskInitiate;
 import networkcommunication.messaging.traffic.PullTrafficSummary;
@@ -21,6 +24,16 @@ public final class EventFactory {
 
     public static EventFactory getInstance() {
         return instance;
+    }
+
+    public static Event<MessagingNodesListReceive> receiveMessagingList(
+            byte[] marshalledBytes) throws IOException {
+        return new MessagingNodesListReceive(marshalledBytes);
+    }
+
+    public static Event<ReadyReceive> receiveReadyMessage(
+            byte[] marshalledBytes) throws IOException {
+        return new ReadyReceive(marshalledBytes);
     }
 
     public static Event<TaskInitiate> receiveTaskInitiate(

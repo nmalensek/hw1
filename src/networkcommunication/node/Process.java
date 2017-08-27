@@ -4,6 +4,9 @@ import networkcommunication.collate.CommunicationTracker;
 import networkcommunication.messaging.Event;
 import networkcommunication.messaging.message.Message;
 import networkcommunication.messaging.message.MessageCreator;
+import networkcommunication.messaging.storenetworkinfo.MessagingNodesList;
+import networkcommunication.messaging.storenetworkinfo.MessagingNodesListReceive;
+import networkcommunication.messaging.task.ReadySend;
 import networkcommunication.messaging.task.TaskComplete;
 import networkcommunication.messaging.task.TaskInitiate;
 import networkcommunication.messaging.traffic.PullTrafficSummary;
@@ -15,10 +18,7 @@ import networkcommunication.util.ConfigFileReader;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
-import java.util.List;
 
 public class Process implements Node {
 
@@ -28,7 +28,6 @@ public class Process implements Node {
     private static int collatorPort;
     private String thisNodeIP = Inet4Address.getLocalHost().getHostAddress();
     private String thisNodeID;
-    private ConfigFileReader reader = ConfigFileReader.getInstance();
     private TCPServerThread receivingSocket;
     private CommunicationTracker communicationTracker = new CommunicationTracker();
     private HashMap<String, NodeRecord> nodesInOverlay = new HashMap<>();
@@ -50,11 +49,13 @@ public class Process implements Node {
 
     @Override
     public void onEvent(Event event, Socket destinationSocket) throws IOException {
-        if (event instanceof TaskInitiate) {
-            int rounds = ((TaskInitiate) event).getRounds();
-            readConfigFileAndCacheConnections();
-            sendMessages(rounds);
+        if (event instanceof MessagingNodesListReceive) {
+            cacheOverlayInformation(((MessagingNodesListReceive) event).getNodesToConnectTo());
             connectToCollator();
+            sendReadyMessage();
+        } else if (event instanceof TaskInitiate) {
+            int rounds = ((TaskInitiate) event).getRounds();
+            sendMessages(rounds);
             sendTaskCompleteToCollator();
         } else if (event instanceof Message) {
             communicationTracker.incrementReceiveTracker();
@@ -65,22 +66,29 @@ public class Process implements Node {
         }
     }
 
-    private void readConfigFileAndCacheConnections() throws IOException {
-        List<String> fileLines = Files.readAllLines(Paths.get(configFilePath));
-        for (String line : fileLines) {
-            String[] splitLine = line.split(":");
-            String lineIP = splitLine[0];
-            int linePort = Integer.parseInt(splitLine[1]);
-
-            if (lineIP.equals(thisNodeIP) && linePort == thisNodePort) {
-                //don't connect to self
-            } else {
-                Socket nodeSocket = new Socket(lineIP, linePort);
-                NodeRecord node = new NodeRecord(lineIP, linePort, nodeSocket);
-                nodesInOverlay.put(line, node);
-            }
+    private void cacheOverlayInformation(String overlayString) throws IOException {
+        String[] splitLines = overlayString.split("\n");
+        for (String nodeID : splitLines) {
+            String nodeIP = nodeID.split(":")[0];
+            int nodePort = Integer.parseInt(nodeID.split(":")[1]);
+            storeNodeInformation(nodeIP, nodePort);
         }
-        System.out.println("Config file successfully read and network information stored.");
+    }
+
+    private void storeNodeInformation(String ip, int port) throws IOException {
+        Socket nodeSocket = new Socket(ip, port);
+        NodeRecord node = new NodeRecord(ip, port, nodeSocket);
+        nodesInOverlay.put(ip + ":" + port, node);
+    }
+
+    private void connectToCollator() throws IOException {
+        collatorSocket = new Socket(collatorHost, collatorPort);
+        collatorSender = new TCPSender(collatorSocket);
+    }
+
+    private void sendReadyMessage() throws IOException {
+        ReadySend ready = new ReadySend();
+        collatorSender.sendData(ready.getBytes());
     }
 
     private void sendMessages(int numberOfRounds) throws IOException {
@@ -95,11 +103,6 @@ public class Process implements Node {
         taskComplete.setIpAddress(thisNodeIP);
         taskComplete.setPortNumber(thisNodePort);
         collatorSender.sendData(taskComplete.getBytes());
-    }
-
-    private void connectToCollator() throws IOException {
-        collatorSocket = new Socket(collatorHost, collatorPort);
-        collatorSender = new TCPSender(collatorSocket);
     }
 
     private void createAndSendTrafficSummary() throws IOException {

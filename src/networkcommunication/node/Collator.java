@@ -2,15 +2,15 @@ package networkcommunication.node;
 
 import networkcommunication.collate.TrafficPrinter;
 import networkcommunication.messaging.Event;
+import networkcommunication.messaging.storenetworkinfo.MessagingNodesList;
+import networkcommunication.messaging.task.ReadyReceive;
 import networkcommunication.messaging.task.TaskComplete;
 import networkcommunication.messaging.task.TaskInitiate;
 import networkcommunication.messaging.traffic.PullTrafficSummary;
 import networkcommunication.messaging.traffic.TrafficSummary;
 import networkcommunication.transport.TCPServerThread;
-import networkcommunication.util.ConfigFileReader;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
@@ -20,9 +20,9 @@ import java.util.List;
 
 public class Collator implements Node {
 
-    private String thisNodeIP = Inet4Address.getLocalHost().getHostAddress();
     private static int thisNodePort;
     private static String configFilePath;
+    private int readyNodes;
     private int finishedNodes;
     private int numberOfSummariesReceived;
     private static int numberOfRounds;
@@ -37,6 +37,7 @@ public class Collator implements Node {
         TCPServerThread collatorServerThread = new TCPServerThread(this, thisNodePort);
         collatorServerThread.start();
         readConfigFileAndCacheConnections();
+        dispatchOverlayInformation();
         initiateMessagingProcess();
     }
 
@@ -47,34 +48,33 @@ public class Collator implements Node {
             String lineIP = splitLine[0];
             int linePort = Integer.parseInt(splitLine[1]);
 
-            if (lineIP.equals(thisNodeIP) && linePort == thisNodePort) {
-                //don't connect to self
-            } else {
-                Socket nodeSocket = new Socket(lineIP, linePort);
-                NodeRecord node = new NodeRecord(lineIP, linePort, nodeSocket);
-                nodeMap.put(line, node);
-            }
+            Socket nodeSocket = new Socket(lineIP, linePort);
+            NodeRecord node = new NodeRecord(lineIP, linePort, nodeSocket);
+            nodeMap.put(line, node);
         }
         System.out.println("Config file successfully read and network information stored.");
     }
 
-    private void initiateMessagingProcess() throws IOException {
-        trafficPrinter.resetTrafficStringAndCounters();
-        finishedNodes = 0;
-        TaskInitiate taskInitiate = new TaskInitiate();
-        taskInitiate.setRounds(numberOfRounds);
+    private void dispatchOverlayInformation() throws IOException {
+        MessagingNodesList messagingNodesList = new MessagingNodesList();
+        messagingNodesList.setMessagingNodes(nodeMap);
         for (NodeRecord node : nodeMap.values()) {
-            node.getSender().sendData(taskInitiate.getBytes());
+            node.getSender().sendData(messagingNodesList.getBytes());
         }
     }
 
     @Override
     public void onEvent(Event event, Socket destinationSocket) throws IOException {
-        if (event instanceof TaskComplete) {
+        if (event instanceof ReadyReceive) {
+            readyNodes++;
+            if (readyNodes == nodeMap.size()) {
+                initiateMessagingProcess();
+            }
+        } else if (event instanceof TaskComplete) {
             ++finishedNodes;
-            if(finishedNodes == nodeMap.size()) {
+            if (finishedNodes == nodeMap.size()) {
                 try {
-                    Thread.sleep(15000);
+                    Thread.sleep(5000);
                     pullTrafficSummary();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -88,6 +88,16 @@ public class Collator implements Node {
                 trafficPrinter.printTrafficSummary();
                 numberOfSummariesReceived = 0;
             }
+        }
+    }
+
+    private void initiateMessagingProcess() throws IOException {
+        trafficPrinter.resetTrafficStringAndCounters();
+        finishedNodes = 0;
+        TaskInitiate taskInitiate = new TaskInitiate();
+        taskInitiate.setRounds(numberOfRounds);
+        for (NodeRecord node : nodeMap.values()) {
+            node.getSender().sendData(taskInitiate.getBytes());
         }
     }
 

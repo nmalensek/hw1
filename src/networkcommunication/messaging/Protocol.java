@@ -6,5 +6,6 @@ public interface Protocol {
     int TRAFFIC_SUMMARY = 2;
     int TASK_INITIATE = 3;
     int TASK_COMPLETE = 4;
-    int REGISTER_REQUEST = 5;
+    int MESSAGING_NODES_LIST = 5;
+    int READY = 6;
 }
