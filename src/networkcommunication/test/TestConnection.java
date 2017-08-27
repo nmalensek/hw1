@@ -11,7 +11,7 @@ public class TestConnection {
 
     public static void main(String[] args) {
         try {
-            Socket socket = new Socket(Inet4Address.getLocalHost().getHostName(), 52767);
+            Socket socket = new Socket(Inet4Address.getLocalHost().getHostName(), 59364);
             TCPSender sender = new TCPSender(socket);
         } catch (IOException e) {
             e.printStackTrace();

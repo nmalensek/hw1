@@ -5,16 +5,12 @@ import networkcommunication.transport.TCPSender;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 public class NodeRecord {
     private String host;
     private int port;
     private Socket communicationSocket;
-    private int numberOfNodeConnections;
     private String nodeID;
-    private List<NodeRecord> nodeList = new ArrayList<>();
     private TCPSender sender;
     private TCPReceiverThread receiver;
 
@@ -47,8 +43,6 @@ public class NodeRecord {
         communicationSocket.close();
     }
 
-    public List<NodeRecord> getNodeList() { return nodeList; }
-
     public TCPSender getSender() { return this.sender; }
 
     public TCPReceiverThread getReceiver() {
@@ -57,15 +51,6 @@ public class NodeRecord {
 
     public void setReceiver(TCPReceiverThread receiver) {
         this.receiver = receiver;
-    }
-
-    public void printNodesList() {
-        String ports = getPort() + "::";
-        for (NodeRecord nodeRecord : nodeList) {
-            ports += nodeRecord.getPort();
-            ports += ":";
-        }
-        System.out.println(ports + numberOfNodeConnections);
     }
 
     @Override

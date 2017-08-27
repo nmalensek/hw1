@@ -9,6 +9,12 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Unused class, better in this case to have each node have a copy
+ * of this method to speed up config file processing (each node can
+ * modify their overlay hashmap concurrently)
+ */
+
 public class ConfigFileReader {
 
     private static final ConfigFileReader instance = new ConfigFileReader();

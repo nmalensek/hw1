@@ -13,7 +13,10 @@ import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 
 public class Collator implements Node {
 
@@ -25,7 +28,6 @@ public class Collator implements Node {
     private static int numberOfRounds;
     private TrafficPrinter trafficPrinter = new TrafficPrinter();
     private HashMap<String, NodeRecord> nodeMap = new HashMap<>();
-    private ConfigFileReader reader = ConfigFileReader.getInstance();
 
     public Collator() throws UnknownHostException {
 
@@ -34,8 +36,26 @@ public class Collator implements Node {
     private void startUp() throws IOException {
         TCPServerThread collatorServerThread = new TCPServerThread(this, thisNodePort);
         collatorServerThread.start();
-        reader.readConfigFileAndCacheConnections(configFilePath, nodeMap, thisNodeIP, thisNodePort);
+        readConfigFileAndCacheConnections();
         initiateMessagingProcess();
+    }
+
+    private void readConfigFileAndCacheConnections() throws IOException {
+        List<String> fileLines = Files.readAllLines(Paths.get(configFilePath));
+        for (String line : fileLines) {
+            String[] splitLine = line.split(":");
+            String lineIP = splitLine[0];
+            int linePort = Integer.parseInt(splitLine[1]);
+
+            if (lineIP.equals(thisNodeIP) && linePort == thisNodePort) {
+                //don't connect to self
+            } else {
+                Socket nodeSocket = new Socket(lineIP, linePort);
+                NodeRecord node = new NodeRecord(lineIP, linePort, nodeSocket);
+                nodeMap.put(line, node);
+            }
+        }
+        System.out.println("Config file successfully read and network information stored.");
     }
 
     private void initiateMessagingProcess() throws IOException {
