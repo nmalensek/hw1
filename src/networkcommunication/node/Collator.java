@@ -38,18 +38,17 @@ public class Collator implements Node {
         collatorServerThread.start();
         readConfigFileAndCacheConnections();
         dispatchOverlayInformation();
-        initiateMessagingProcess();
     }
 
     private void readConfigFileAndCacheConnections() throws IOException {
         List<String> fileLines = Files.readAllLines(Paths.get(configFilePath));
         for (String line : fileLines) {
             String[] splitLine = line.split(":");
-            String lineIP = splitLine[0];
+            String lineHost = splitLine[0];
             int linePort = Integer.parseInt(splitLine[1]);
 
-            Socket nodeSocket = new Socket(lineIP, linePort);
-            NodeRecord node = new NodeRecord(lineIP, linePort, nodeSocket);
+            Socket nodeSocket = new Socket(lineHost, linePort);
+            NodeRecord node = new NodeRecord(lineHost, linePort, nodeSocket);
             nodeMap.put(line, node);
         }
         System.out.println("Config file successfully read and network information stored.");

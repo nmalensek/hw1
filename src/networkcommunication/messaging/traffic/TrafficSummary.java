@@ -8,7 +8,7 @@ import java.io.*;
 public class TrafficSummary implements Protocol, Event<TrafficSummary> {
 
     int messageType = TRAFFIC_SUMMARY;
-    String ipAddress;
+    String hostName;
     int portNumber;
     private int sentMessages;
     private int receivedMessages;
@@ -34,7 +34,7 @@ public class TrafficSummary implements Protocol, Event<TrafficSummary> {
 
         dataOutputStream.writeInt(messageType);
 
-        byte[] identifierBytes = ipAddress.getBytes();
+        byte[] identifierBytes = hostName.getBytes();
         int elementLength = identifierBytes.length;
         dataOutputStream.writeInt(elementLength);
         dataOutputStream.write(identifierBytes);
@@ -67,7 +67,7 @@ public class TrafficSummary implements Protocol, Event<TrafficSummary> {
         byte[] identifierBytes = new byte[routeLength];
         dataInputStream.readFully(identifierBytes);
 
-        ipAddress = new String(identifierBytes);
+        hostName = new String(identifierBytes);
         portNumber = dataInputStream.readInt();
         sentMessages = dataInputStream.readInt();
         sendSummation = dataInputStream.readLong();
@@ -79,8 +79,8 @@ public class TrafficSummary implements Protocol, Event<TrafficSummary> {
         dataInputStream.close();
     }
 
-    public String getIpAddress() { return ipAddress; }
-    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
+    public String getHostName() { return hostName; }
+    public void setHostName(String hostName) { this.hostName = hostName; }
 
     public int getPortNumber() { return portNumber; }
     public void setPortNumber(int portNumber) { this.portNumber = portNumber; }

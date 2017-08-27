@@ -9,7 +9,6 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Message implements Protocol, Event<Message> {
 
     private int messageType = MESSAGE;
-    private String routingPath;
     private int payload;
 
     public Message getType() {
@@ -31,11 +30,6 @@ public class Message implements Protocol, Event<Message> {
         dataOutputStream.writeInt(messageType);
         dataOutputStream.writeInt(payload);
 
-        byte[] identifierBytes = routingPath.getBytes();
-        int elementLength = identifierBytes.length;
-        dataOutputStream.writeInt(elementLength);
-        dataOutputStream.write(identifierBytes);
-
         dataOutputStream.flush();
         marshalledBytes = byteArrayOutputStream.toByteArray();
 
@@ -53,12 +47,6 @@ public class Message implements Protocol, Event<Message> {
 
         messageType = dataInputStream.readInt();
         payload = dataInputStream.readInt();
-
-        int routeLength = dataInputStream.readInt();
-        byte[] identifierBytes = new byte[routeLength];
-        dataInputStream.readFully(identifierBytes);
-
-        routingPath = new String(identifierBytes);
 
         byteArrayInputStream.close();
         dataInputStream.close();

@@ -23,10 +23,10 @@ import java.util.HashMap;
 public class Process implements Node {
 
     private static int thisNodePort;
-    private static String configFilePath;
     private static String collatorHost;
     private static int collatorPort;
     private String thisNodeIP = Inet4Address.getLocalHost().getHostAddress();
+    private String thisNodeHostName = Inet4Address.getLocalHost().getHostName();
     private String thisNodeID;
     private TCPServerThread receivingSocket;
     private CommunicationTracker communicationTracker = new CommunicationTracker();
@@ -71,14 +71,19 @@ public class Process implements Node {
         for (String nodeID : splitLines) {
             String nodeIP = nodeID.split(":")[0];
             int nodePort = Integer.parseInt(nodeID.split(":")[1]);
-            storeNodeInformation(nodeIP, nodePort);
+            if (nodeIP.equals(thisNodeHostName) && nodePort == thisNodePort) {
+                //don't connect to self
+            } else {
+                storeNodeInformation(nodeIP, nodePort);
+            }
         }
     }
 
-    private void storeNodeInformation(String ip, int port) throws IOException {
-        Socket nodeSocket = new Socket(ip, port);
-        NodeRecord node = new NodeRecord(ip, port, nodeSocket);
-        nodesInOverlay.put(ip + ":" + port, node);
+    private void storeNodeInformation(String hostName, int port) throws IOException {
+        Socket nodeSocket = new Socket(hostName, port);
+        NodeRecord node = new NodeRecord(hostName, port, nodeSocket);
+        nodesInOverlay.put(hostName + ":" + port, node);
+        System.out.println(hostName + ":" + port);
     }
 
     private void connectToCollator() throws IOException {
@@ -106,15 +111,14 @@ public class Process implements Node {
     }
 
     private void createAndSendTrafficSummary() throws IOException {
-        TrafficSummary summary = communicationTracker.createTrafficSummary(thisNodeIP, thisNodePort);
+        TrafficSummary summary = communicationTracker.createTrafficSummary(thisNodeHostName, thisNodePort);
         collatorSender.sendData(summary.getBytes());
     }
 
     public static void main(String[] args) {
-        configFilePath = args[0];
-        thisNodePort = Integer.parseInt(args[1]);
-        collatorHost = args[2];
-        collatorPort = Integer.parseInt(args[3]);
+        thisNodePort = Integer.parseInt(args[0]);
+        collatorHost = args[1];
+        collatorPort = Integer.parseInt(args[2]);
 
         try {
             Process process = new Process();

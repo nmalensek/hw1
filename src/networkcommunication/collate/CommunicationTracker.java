@@ -25,9 +25,9 @@ public class CommunicationTracker {
         receiveSummation = receiveSummation + amountToAdd;
     }
 
-    public TrafficSummary createTrafficSummary(String nodeIP, int nodePort) {
+    public TrafficSummary createTrafficSummary(String nodeHostName, int nodePort) {
         TrafficSummary trafficSummary = new TrafficSummary();
-        trafficSummary.setIpAddress(nodeIP);
+        trafficSummary.setHostName(nodeHostName);
         trafficSummary.setPortNumber(nodePort);
         trafficSummary.setSentMessages(sendTracker);
         trafficSummary.setSendSummation(sendSummation);

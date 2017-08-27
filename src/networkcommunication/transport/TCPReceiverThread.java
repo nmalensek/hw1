@@ -3,7 +3,6 @@ package networkcommunication.transport;
 import networkcommunication.messaging.*;
 import networkcommunication.messaging.Event;
 import networkcommunication.messaging.message.Message;
-import networkcommunication.messaging.storenetworkinfo.MessagingNodesList;
 import networkcommunication.messaging.storenetworkinfo.MessagingNodesListReceive;
 import networkcommunication.messaging.task.ReadyReceive;
 import networkcommunication.messaging.task.TaskComplete;

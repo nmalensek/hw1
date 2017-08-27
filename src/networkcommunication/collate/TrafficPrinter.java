@@ -28,7 +28,7 @@ public class TrafficPrinter {
      * @param summary individual node's traffic summary
      */
     public synchronized void processSummary(TrafficSummary summary) {
-        String nodeID = summary.getIpAddress() + ":" + summary.getPortNumber();
+        String nodeID = summary.getHostName() + ":" + summary.getPortNumber();
         int sentMessages = summary.getSentMessages();
         totalMessagesSent = totalMessagesSent + sentMessages;
 
@@ -46,7 +46,7 @@ public class TrafficPrinter {
     }
 
     public void addTotalsToString() {
-        traffic += String.format("%-30s %-10s %-10s %-15s %-15s %n", "",
+        traffic += String.format("%-30s %-10s %-10s %-15s %-15s %n", "Sum",
                 totalMessagesSent, totalMessagesReceived,
                 totalSendSummation, totalReceiveSummation);
     }

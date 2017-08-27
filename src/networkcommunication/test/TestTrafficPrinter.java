@@ -28,7 +28,7 @@ public class TestTrafficPrinter {
      * @param summary individual node's traffic summary
      */
     public synchronized void processSummary(TrafficSummary summary) {
-        String nodeID = summary.getIpAddress() + ":" + summary.getPortNumber();
+        String nodeID = summary.getHostName() + ":" + summary.getPortNumber();
         int sentMessages = summary.getSentMessages();
         totalMessagesSent = totalMessagesSent + sentMessages;
 
@@ -65,7 +65,7 @@ public class TestTrafficPrinter {
 
     private TrafficSummary createTestSummary() {
         TrafficSummary testSummary = new TrafficSummary();
-        testSummary.setIpAddress("127.0.0.1");
+        testSummary.setHostName("127.0.0.1");
         testSummary.setPortNumber(5000);
         testSummary.setSentMessages(25000);
         testSummary.setReceivedMessages(24500);
