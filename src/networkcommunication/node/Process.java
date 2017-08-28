@@ -55,6 +55,7 @@ public class Process implements Node {
             sendReadyMessage();
         } else if (event instanceof TaskInitiate) {
             int rounds = ((TaskInitiate) event).getRounds();
+            System.out.println("sending messages...");
             sendMessages(rounds);
             sendTaskCompleteToCollator();
         } else if (event instanceof Message) {
@@ -104,6 +105,7 @@ public class Process implements Node {
     }
 
     private void sendTaskCompleteToCollator() throws IOException {
+        System.out.println("Done sending messages.");
         TaskComplete taskComplete = new TaskComplete();
         taskComplete.setIpAddress(thisNodeIP);
         taskComplete.setPortNumber(thisNodePort);

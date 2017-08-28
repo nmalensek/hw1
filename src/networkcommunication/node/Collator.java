@@ -17,16 +17,17 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Collator implements Node {
 
     private static int thisNodePort;
     private static String configFilePath;
-    private int readyNodes;
-    private int finishedNodes;
+    private AtomicInteger readyNodes = new AtomicInteger(0);
+    private AtomicInteger finishedNodes = new AtomicInteger(0);
     private int numberOfSummariesReceived;
     private static int numberOfRounds;
-    private TrafficPrinter trafficPrinter = new TrafficPrinter();
+    private static TrafficPrinter trafficPrinter = new TrafficPrinter();
     private HashMap<String, NodeRecord> nodeMap = new HashMap<>();
 
     public Collator() throws UnknownHostException {
@@ -65,15 +66,16 @@ public class Collator implements Node {
     @Override
     public void onEvent(Event event, Socket destinationSocket) throws IOException {
         if (event instanceof ReadyReceive) {
-            readyNodes++;
-            if (readyNodes == nodeMap.size()) {
+            readyNodes.incrementAndGet();
+            System.out.println(readyNodes + " node(s) ready");
+            if (readyNodes.get() == nodeMap.size()) {
                 initiateMessagingProcess();
             }
         } else if (event instanceof TaskComplete) {
-            ++finishedNodes;
-            if (finishedNodes == nodeMap.size()) {
+            finishedNodes.incrementAndGet();
+            if (finishedNodes.get() == nodeMap.size()) {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(1000);
                     pullTrafficSummary();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -85,14 +87,12 @@ public class Collator implements Node {
             if (numberOfSummariesReceived == nodeMap.size()) {
                 trafficPrinter.addTotalsToString();
                 trafficPrinter.printTrafficSummary();
-                numberOfSummariesReceived = 0;
+                resetCounters();
             }
         }
     }
 
     private void initiateMessagingProcess() throws IOException {
-        trafficPrinter.resetTrafficStringAndCounters();
-        finishedNodes = 0;
         TaskInitiate taskInitiate = new TaskInitiate();
         taskInitiate.setRounds(numberOfRounds);
         for (NodeRecord node : nodeMap.values()) {
@@ -105,6 +105,12 @@ public class Collator implements Node {
         for (NodeRecord nodeRecord : nodeMap.values()) {
             nodeRecord.getSender().sendData(pullTrafficSummary.getBytes());
         }
+    }
+
+    private void resetCounters() {
+        numberOfSummariesReceived = 0;
+        trafficPrinter.resetTrafficStringAndCounters();
+        finishedNodes.set(0);
     }
 
     public static void main(String[] args) throws UnknownHostException {

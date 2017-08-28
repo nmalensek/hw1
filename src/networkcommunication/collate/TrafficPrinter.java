@@ -10,11 +10,9 @@ public class TrafficPrinter {
     private long totalSendSummation;
     private long totalReceiveSummation;
 
-    public TrafficPrinter() {
-        createOutputHeaders();
-    }
+    public TrafficPrinter() { createOutputHeaders(); }
 
-    private void createOutputHeaders() {
+    private synchronized void createOutputHeaders() {
         traffic += String.format("%-30s %-10s %-10s %-15s %-15s %n", "", "",
                 "", "Summation", "Summation", "");
         traffic += String.format("%-30s %-10s %-10s %-15s %-15s %n", "", "Sent",
