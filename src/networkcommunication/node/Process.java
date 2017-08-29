@@ -82,6 +82,7 @@ public class Process implements Node {
 
     private void storeNodeInformation(String hostName, int port) throws IOException {
         Socket nodeSocket = new Socket(hostName, port);
+//        nodeSocket.setReuseAddress(true);
         NodeRecord node = new NodeRecord(hostName, port, nodeSocket);
         nodesInOverlay.put(hostName + ":" + port, node);
         System.out.println(hostName + ":" + port);
@@ -101,6 +102,7 @@ public class Process implements Node {
         MessageCreator messageCreator = new MessageCreator(communicationTracker, nodesInOverlay);
             for (int roundsSent = 0; roundsSent < numberOfRounds; roundsSent++) {
                 messageCreator.sendMessage();
+                System.out.println(thisNodeHostName + " has sent " + roundsSent * 5 + " messages");
             }
     }
 

@@ -73,6 +73,7 @@ public class Collator implements Node {
             }
         } else if (event instanceof TaskComplete) {
             finishedNodes.incrementAndGet();
+            System.out.println(finishedNodes.get() + " nodes done.");
             if (finishedNodes.get() == nodeMap.size()) {
                 try {
                     Thread.sleep(15000);
