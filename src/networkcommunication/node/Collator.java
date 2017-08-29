@@ -25,7 +25,7 @@ public class Collator implements Node {
     private static String configFilePath;
     private AtomicInteger readyNodes = new AtomicInteger(0);
     private AtomicInteger finishedNodes = new AtomicInteger(0);
-    private int numberOfSummariesReceived;
+    private AtomicInteger numberOfSummariesReceived = new AtomicInteger(0);
     private static int numberOfRounds;
     private static TrafficPrinter trafficPrinter = new TrafficPrinter();
     private HashMap<String, NodeRecord> nodeMap = new HashMap<>();
@@ -75,7 +75,7 @@ public class Collator implements Node {
             finishedNodes.incrementAndGet();
             if (finishedNodes.get() == nodeMap.size()) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(15000);
                     pullTrafficSummary();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -83,8 +83,8 @@ public class Collator implements Node {
             }
         } else if (event instanceof TrafficSummary) {
             trafficPrinter.processSummary(((TrafficSummary) event));
-            ++numberOfSummariesReceived;
-            if (numberOfSummariesReceived == nodeMap.size()) {
+            numberOfSummariesReceived.incrementAndGet();
+            if (numberOfSummariesReceived.get() == nodeMap.size()) {
                 trafficPrinter.addTotalsToString();
                 trafficPrinter.printTrafficSummary();
                 resetCounters();
@@ -108,7 +108,7 @@ public class Collator implements Node {
     }
 
     private void resetCounters() {
-        numberOfSummariesReceived = 0;
+        numberOfSummariesReceived.set(0);
         trafficPrinter.resetTrafficStringAndCounters();
         finishedNodes.set(0);
     }
