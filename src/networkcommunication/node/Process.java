@@ -82,7 +82,6 @@ public class Process implements Node {
 
     private void storeNodeInformation(String hostName, int port) throws IOException {
         Socket nodeSocket = new Socket(hostName, port);
-//        nodeSocket.setReuseAddress(true);
         NodeRecord node = new NodeRecord(hostName, port, nodeSocket);
         nodesInOverlay.put(hostName + ":" + port, node);
         System.out.println(hostName + ":" + port);
