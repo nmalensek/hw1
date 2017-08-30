@@ -45,7 +45,6 @@ public class Collator implements Node {
     private void readConfigFileAndCacheConnections() throws IOException {
         List<String> fileLines = Files.readAllLines(Paths.get(configFilePath));
         for (String line : fileLines) {
-            if (!line.isEmpty()) {
                 String[] splitLine = line.split(":");
                 String lineHost = splitLine[0];
                 int linePort = Integer.parseInt(splitLine[1]);
@@ -53,7 +52,6 @@ public class Collator implements Node {
                 Socket nodeSocket = new Socket(lineHost, linePort);
                 NodeRecord node = new NodeRecord(lineHost, linePort, nodeSocket);
                 nodeMap.put(line, node);
-            }
         }
         System.out.println("Config file successfully read and network information stored.");
     }
@@ -69,13 +67,14 @@ public class Collator implements Node {
     @Override
     public void onEvent(Event event, Socket destinationSocket) throws IOException {
         if (event instanceof ReadyReceive) {
-            readyNodes.incrementAndGet();
+            readyNodes.getAndIncrement();
             System.out.println(readyNodes + " node(s) ready");
             if (readyNodes.get() == nodeMap.size()) {
+                System.out.println("there are " + nodeMap.size() + " nodes in the overlay.");
                 initiateMessagingProcess();
             }
         } else if (event instanceof TaskComplete) {
-            finishedNodes.incrementAndGet();
+            finishedNodes.getAndIncrement();
             System.out.println(finishedNodes.get() + " nodes done.");
             if (finishedNodes.get() == nodeMap.size()) {
                 try {
@@ -87,12 +86,12 @@ public class Collator implements Node {
             }
         } else if (event instanceof TrafficSummary) {
             trafficPrinter.processSummary(((TrafficSummary) event));
-            numberOfSummariesReceived.incrementAndGet();
+            numberOfSummariesReceived.getAndIncrement();
             if (numberOfSummariesReceived.get() == nodeMap.size()) {
                 trafficPrinter.addTotalsToString();
                 trafficPrinter.printTrafficSummary();
                 resetCounters();
-                ConfigFileWriter.getInstance().clearFile(configFilePath);
+//                ConfigFileWriter.getInstance().clearFile(configFilePath);
             }
         }
     }

@@ -47,13 +47,12 @@ public class MessageCreator {
         socketToMessage.close();
     }
 
-    public void sendMessageSameSocket() throws IOException {
+    public void sendMessageSameSocket(TCPSender sender) throws IOException {
         chooseRandomNodeRecord();
         Message message = new Message();
-        TCPSender sender = nodeToMessage.getSender();
         for (int numMessages = 0; numMessages < 5; numMessages++) {
             message.setPayload();
-            sender.sendData(message.getBytes());
+            sender.sendToSpecificSocket(nodeToMessage.getCommunicationSocket(), message.getBytes());
             communicationTracker.incrementSendTracker();
             communicationTracker.incrementSendSummation(message.getPayload());
         }

@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 public class Process implements Node {
 
-    private int thisNodePort;
+    private static int thisNodePort;
     private static String collatorHost;
     private static int collatorPort;
     private static String configFilePath;
@@ -41,23 +41,22 @@ public class Process implements Node {
 
     private void startUp() throws IOException {
         createServerThread();
-        getPortNumber();
         thisNodeID = thisNodeIP + ":" + thisNodePort;
-        ConfigFileWriter.getInstance().writeToConfigFile(configFilePath, thisNodeID);
+//        ConfigFileWriter.getInstance().writeToConfigFile(configFilePath, thisNodeID);
     }
 
     private void createServerThread() throws IOException {
-        receivingSocket = new TCPServerThread(this, 0); //node starts listening on specified port
+        receivingSocket = new TCPServerThread(this, thisNodePort); //node starts listening on specified port
         receivingSocket.start();
     }
 
-    private void getPortNumber() {
-        try {
-            thisNodePort = receivingSocket.getPortNumber();
-        } catch (NullPointerException e) {
-            getPortNumber();
-        }
-    }
+//    private void getPortNumber() {
+//        try {
+//            thisNodePort = receivingSocket.getPortNumber();
+//        } catch (NullPointerException e) {
+//            getPortNumber();
+//        }
+//    }
 
     @Override
     public void onEvent(Event event, Socket destinationSocket) throws IOException {
@@ -112,8 +111,8 @@ public class Process implements Node {
     private void sendMessages(int numberOfRounds) throws IOException {
         MessageCreator messageCreator = new MessageCreator(communicationTracker, nodesInOverlay);
             for (int roundsSent = 0; roundsSent < numberOfRounds; roundsSent++) {
-                messageCreator.sendMessageNewSocket(collatorSender);
-//                messageCreator.sendMessageSameSocket();
+//                messageCreator.sendMessageNewSocket(collatorSender);
+                messageCreator.sendMessageSameSocket(collatorSender);
                 System.out.println(thisNodeHostName + " has sent " + roundsSent * 5 + " messages");
             }
     }
@@ -134,7 +133,8 @@ public class Process implements Node {
     public static void main(String[] args) {
         collatorHost = args[0];
         collatorPort = Integer.parseInt(args[1]);
-        configFilePath = args[2];
+        thisNodePort = Integer.parseInt(args[2]);
+        configFilePath = args[3];
 
         try {
             Process process = new Process();

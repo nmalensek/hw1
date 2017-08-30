@@ -25,14 +25,12 @@ public class TCPSender {
         dataOutputStream.flush();
     }
 
-    public void sendToSpecificSocket(Socket socket, byte[] data) throws IOException {
+    public synchronized void sendToSpecificSocket(Socket socket, byte[] data) throws IOException {
         int dataLength = data.length;
             DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-        synchronized (socket) {
             outputStream.writeInt(dataLength);
             outputStream.write(data, 0, dataLength);
             outputStream.flush();
-        }
     }
 
 }
