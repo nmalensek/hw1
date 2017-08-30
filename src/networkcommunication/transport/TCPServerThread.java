@@ -14,12 +14,13 @@ public class TCPServerThread extends Thread {
     private Node node;
     private int portNum;
     private ServerSocket serverSocket;
-    private Socket unusedSocket;
 
     public TCPServerThread(Node node, int portNum) {
         this.node = node;
         this.portNum = portNum;
     }
+
+    public int getPortNumber() { return serverSocket.getLocalPort(); }
 
     public void run() {
         try {

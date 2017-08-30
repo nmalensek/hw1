@@ -9,6 +9,7 @@ import networkcommunication.messaging.task.TaskInitiate;
 import networkcommunication.messaging.traffic.PullTrafficSummary;
 import networkcommunication.messaging.traffic.TrafficSummary;
 import networkcommunication.transport.TCPServerThread;
+import networkcommunication.util.ConfigFileWriter;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -44,13 +45,15 @@ public class Collator implements Node {
     private void readConfigFileAndCacheConnections() throws IOException {
         List<String> fileLines = Files.readAllLines(Paths.get(configFilePath));
         for (String line : fileLines) {
-            String[] splitLine = line.split(":");
-            String lineHost = splitLine[0];
-            int linePort = Integer.parseInt(splitLine[1]);
+            if (!line.isEmpty()) {
+                String[] splitLine = line.split(":");
+                String lineHost = splitLine[0];
+                int linePort = Integer.parseInt(splitLine[1]);
 
-            Socket nodeSocket = new Socket(lineHost, linePort);
-            NodeRecord node = new NodeRecord(lineHost, linePort, nodeSocket);
-            nodeMap.put(line, node);
+                Socket nodeSocket = new Socket(lineHost, linePort);
+                NodeRecord node = new NodeRecord(lineHost, linePort, nodeSocket);
+                nodeMap.put(line, node);
+            }
         }
         System.out.println("Config file successfully read and network information stored.");
     }
@@ -89,6 +92,7 @@ public class Collator implements Node {
                 trafficPrinter.addTotalsToString();
                 trafficPrinter.printTrafficSummary();
                 resetCounters();
+                ConfigFileWriter.getInstance().clearFile(configFilePath);
             }
         }
     }
