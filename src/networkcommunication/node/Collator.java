@@ -126,7 +126,7 @@ public class Collator implements Node {
         System.out.println("All nodes messaged...");
     }
 
-    private void printDone() {
+    private synchronized void printDone() {
         String done = "The following nodes are still going: ";
         for (String id : nodeMapCopy.keySet()) {
             done += id + ",";
