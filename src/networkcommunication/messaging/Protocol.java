@@ -8,4 +8,5 @@ public interface Protocol {
     int TASK_COMPLETE = 4;
     int MESSAGING_NODES_LIST = 5;
     int READY = 6;
+    int SHUTDOWN = 99;
 }

@@ -8,6 +8,7 @@ import networkcommunication.messaging.task.TaskComplete;
 import networkcommunication.messaging.task.TaskInitiate;
 import networkcommunication.messaging.traffic.PullTrafficSummary;
 import networkcommunication.messaging.traffic.TrafficSummary;
+import networkcommunication.transport.TCPSender;
 import networkcommunication.transport.TCPServerThread;
 import networkcommunication.util.ConfigFileWriter;
 
@@ -30,6 +31,10 @@ public class Collator implements Node {
     private static int numberOfRounds;
     private static TrafficPrinter trafficPrinter = new TrafficPrinter();
     private HashMap<String, NodeRecord> nodeMap = new HashMap<>();
+    private HashMap<String, NodeRecord> nodeMapCopy;
+    private TCPSender sender;
+    private long timeStart;
+    private long timeEnd;
 
     public Collator() throws UnknownHostException {
 
@@ -52,16 +57,19 @@ public class Collator implements Node {
                 Socket nodeSocket = new Socket(lineHost, linePort);
                 NodeRecord node = new NodeRecord(lineHost, linePort, nodeSocket);
                 nodeMap.put(line, node);
+                sender = new TCPSender(nodeSocket);
         }
+        nodeMapCopy = new HashMap<>(nodeMap);
         System.out.println("Config file successfully read and network information stored.");
     }
 
     private void dispatchOverlayInformation() throws IOException {
         MessagingNodesList messagingNodesList = new MessagingNodesList();
         messagingNodesList.setMessagingNodes(nodeMap);
-        for (NodeRecord node : nodeMap.values()) {
-            node.getSender().sendData(messagingNodesList.getBytes());
-        }
+//        for (NodeRecord node : nodeMap.values()) {
+//            node.getSender().sendData(messagingNodesList.getBytes());
+//        }
+        messageAllNodes(messagingNodesList);
     }
 
     @Override
@@ -70,12 +78,15 @@ public class Collator implements Node {
             readyNodes.getAndIncrement();
             System.out.println(readyNodes + " node(s) ready");
             if (readyNodes.get() == nodeMap.size()) {
+                timeStart = System.currentTimeMillis();
                 System.out.println("there are " + nodeMap.size() + " nodes in the overlay.");
                 initiateMessagingProcess();
             }
         } else if (event instanceof TaskComplete) {
             finishedNodes.getAndIncrement();
             System.out.println(finishedNodes.get() + " nodes done.");
+            removeFinishedNodes(((TaskComplete) event).getIpAddress() + ":" + ((TaskComplete) event).getPortNumber());
+            printDone();
             if (finishedNodes.get() == nodeMap.size()) {
                 try {
                     Thread.sleep(15000);
@@ -90,25 +101,54 @@ public class Collator implements Node {
             if (numberOfSummariesReceived.get() == nodeMap.size()) {
                 trafficPrinter.addTotalsToString();
                 trafficPrinter.printTrafficSummary();
+                timeEnd = System.currentTimeMillis();
+                System.out.println("Messaging took: " + (timeEnd - timeStart));
                 resetCounters();
 //                ConfigFileWriter.getInstance().clearFile(configFilePath);
             }
         }
     }
 
+    private synchronized void removeFinishedNodes(String id) {
+        nodeMapCopy.remove(id);
+    }
+
+    private void messageAllNodes(Event message) throws IOException {
+        System.out.println("Messaging all nodes...");
+        for (String node : nodeMap.keySet()) {
+            String nodeHost = node.split(":")[0];
+            int nodePort = Integer.parseInt(node.split(":")[1]);
+            Socket socket = new Socket(nodeHost, nodePort);
+            sender.sendToSpecificSocket(socket, message.getBytes());
+            System.out.println(node);
+            socket.close();
+        }
+        System.out.println("All nodes messaged...");
+    }
+
+    private void printDone() {
+        String done = "The following nodes are still going: ";
+        for (String id : nodeMapCopy.keySet()) {
+            done += id + ",";
+        }
+        System.out.println(done);
+    }
+
     private void initiateMessagingProcess() throws IOException {
         TaskInitiate taskInitiate = new TaskInitiate();
         taskInitiate.setRounds(numberOfRounds);
-        for (NodeRecord node : nodeMap.values()) {
-            node.getSender().sendData(taskInitiate.getBytes());
-        }
+//        for (NodeRecord node : nodeMap.values()) {
+//            node.getSender().sendData(taskInitiate.getBytes());
+//        }
+        messageAllNodes(taskInitiate);
     }
 
     private void pullTrafficSummary() throws IOException {
         PullTrafficSummary pullTrafficSummary = new PullTrafficSummary();
-        for (NodeRecord nodeRecord : nodeMap.values()) {
-            nodeRecord.getSender().sendData(pullTrafficSummary.getBytes());
-        }
+//        for (NodeRecord nodeRecord : nodeMap.values()) {
+//            nodeRecord.getSender().sendData(pullTrafficSummary.getBytes());
+//        }
+        messageAllNodes(pullTrafficSummary);
     }
 
     private void resetCounters() {

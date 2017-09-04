@@ -51,6 +51,7 @@ public class TCPReceiverThread extends Thread implements Protocol {
 
             } catch (IOException ioe) {
                 ioe.getMessage();
+                communicationSocket = null;
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -64,7 +65,7 @@ public class TCPReceiverThread extends Thread implements Protocol {
      * @param marshalledBytes packaged message
      * @throws IOException
      */
-    public void determineMessageType(byte[] marshalledBytes) throws IOException, ClassNotFoundException {
+    private void determineMessageType(byte[] marshalledBytes) throws IOException, ClassNotFoundException {
         ByteArrayInputStream byteArrayInputStream =
                 new ByteArrayInputStream(marshalledBytes);
         DataInputStream dataInputStream =
@@ -108,6 +109,10 @@ public class TCPReceiverThread extends Thread implements Protocol {
                 Event<TrafficSummary> receiveTrafficSummary =
                         eventFactory.receiveTrafficSummary(marshalledBytes);
                 node.onEvent(receiveTrafficSummary, communicationSocket);
+                break;
+            case SHUTDOWN:
+                communicationSocket.setSoLinger(true, 0);
+                communicationSocket.close();
                 break;
             default:
                 System.out.println("Something went horribly wrong, please restart.");

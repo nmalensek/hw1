@@ -17,9 +17,16 @@ import networkcommunication.util.ConfigFileReader;
 import networkcommunication.util.ConfigFileWriter;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.net.Inet4Address;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Process implements Node {
 
@@ -30,13 +37,12 @@ public class Process implements Node {
     private String thisNodeIP = Inet4Address.getLocalHost().getHostAddress();
     private String thisNodeHostName = Inet4Address.getLocalHost().getHostName();
     private String thisNodeID;
-    private TCPServerThread receivingSocket;
-    private CommunicationTracker communicationTracker = new CommunicationTracker();
+    private final CommunicationTracker communicationTracker = new CommunicationTracker();
     private HashMap<String, NodeRecord> nodesInOverlay = new HashMap<>();
-    private Socket collatorSocket;
     private TCPSender collatorSender;
+    private boolean executingTask = false;
 
-    public Process() throws IOException {
+    public Process() throws UnknownHostException {
     }
 
     private void startUp() throws IOException {
@@ -46,17 +52,18 @@ public class Process implements Node {
     }
 
     private void createServerThread() throws IOException {
-        receivingSocket = new TCPServerThread(this, thisNodePort); //node starts listening on specified port
+        TCPServerThread receivingSocket = new TCPServerThread(this, thisNodePort);
         receivingSocket.start();
     }
 
-//    private void getPortNumber() {
-//        try {
-//            thisNodePort = receivingSocket.getPortNumber();
-//        } catch (NullPointerException e) {
-//            getPortNumber();
-//        }
-//    }
+    private synchronized boolean checkAndSetBoolean() {
+        if (!executingTask) {
+            executingTask = true;
+            return false;
+        } else {
+            return true;
+        }
+    }
 
     @Override
     public void onEvent(Event event, Socket destinationSocket) throws IOException {
@@ -65,13 +72,15 @@ public class Process implements Node {
             connectToCollator();
             sendReadyMessage();
         } else if (event instanceof TaskInitiate) {
-            int rounds = ((TaskInitiate) event).getRounds();
-            System.out.println("sending messages...");
-            sendMessages(rounds);
-            sendTaskCompleteToCollator();
+            if (!checkAndSetBoolean()) {
+                int rounds = ((TaskInitiate) event).getRounds();
+                System.out.println("sending messages...");
+                sendMessages(rounds);
+                sendTaskCompleteToCollator();
+            }
         } else if (event instanceof Message) {
-            communicationTracker.incrementReceiveTracker();
-            communicationTracker.incrementReceiveSummation(((Message) event).getPayload());
+                communicationTracker.incrementReceiveTracker();
+                communicationTracker.incrementReceiveSummation(((Message) event).getPayload());
         } else if (event instanceof PullTrafficSummary) {
             createAndSendTrafficSummary();
             communicationTracker.resetCounters();
@@ -99,7 +108,7 @@ public class Process implements Node {
     }
 
     private void connectToCollator() throws IOException {
-        collatorSocket = new Socket(collatorHost, collatorPort);
+        Socket collatorSocket = new Socket(collatorHost, collatorPort);
         collatorSender = new TCPSender(collatorSocket);
     }
 
@@ -111,23 +120,27 @@ public class Process implements Node {
     private void sendMessages(int numberOfRounds) throws IOException {
         MessageCreator messageCreator = new MessageCreator(communicationTracker, nodesInOverlay);
             for (int roundsSent = 0; roundsSent < numberOfRounds; roundsSent++) {
-//                messageCreator.sendMessageNewSocket(collatorSender);
-                messageCreator.sendMessageSameSocket(collatorSender);
-                System.out.println(thisNodeHostName + " has sent " + roundsSent * 5 + " messages");
+                messageCreator.sendMessageNewSocket(collatorSender);
+//                messageCreator.sendMessageSameSocket(collatorSender);
+                System.out.println(thisNodeHostName + " has sent " + (roundsSent + 1) * 5 + " messages");
             }
     }
 
     private void sendTaskCompleteToCollator() throws IOException {
         System.out.println("Done sending messages.");
         TaskComplete taskComplete = new TaskComplete();
-        taskComplete.setIpAddress(thisNodeIP);
+        taskComplete.setIpAddress(thisNodeHostName);
         taskComplete.setPortNumber(thisNodePort);
-        collatorSender.sendData(taskComplete.getBytes());
+        Socket socket = new Socket(collatorHost, collatorPort);
+        collatorSender.sendToSpecificSocket(socket, taskComplete.getBytes());
+        socket.close();
     }
 
     private void createAndSendTrafficSummary() throws IOException {
         TrafficSummary summary = communicationTracker.createTrafficSummary(thisNodeHostName, thisNodePort);
-        collatorSender.sendData(summary.getBytes());
+        Socket socket = new Socket(collatorHost, collatorPort);
+        collatorSender.sendToSpecificSocket(socket, summary.getBytes());
+        socket.close();
     }
 
     public static void main(String[] args) {

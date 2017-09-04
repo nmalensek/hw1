@@ -15,7 +15,7 @@ public class TestServer implements Node {
     private Map<String, NodeRecord> nodeMap = new HashMap<>();
 
     private void startServer() {
-        TCPServerThread testServerThread = new TCPServerThread(this, 0);
+        TCPServerThread testServerThread = new TCPServerThread(this, 60851);
         testServerThread.start();
     }
 
