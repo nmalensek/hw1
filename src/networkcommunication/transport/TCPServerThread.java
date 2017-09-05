@@ -24,6 +24,7 @@ public class TCPServerThread extends Thread {
 
     public int getPortNumber() { return serverSocket.getLocalPort(); }
 
+    //uses a thread pool for better efficiency instead of making a new thread per connection
     public void run() {
         try {
             serverSocket = new ServerSocket(portNum);

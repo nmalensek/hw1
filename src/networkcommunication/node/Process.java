@@ -36,6 +36,10 @@ public class Process implements Node {
     public Process() throws UnknownHostException {
     }
 
+    /**
+     * Starts listening for connections, records its own host name and port.
+     * @throws IOException
+     */
     private void startUp() throws IOException {
         createServerThread();
         thisNodeID = thisNodeIP + ":" + thisNodePort;
@@ -46,6 +50,10 @@ public class Process implements Node {
         receivingSocket.start();
     }
 
+    /**
+     * Prevents nodes from acting on multiple TaskInitiate messages.
+     * @return
+     */
     private synchronized boolean checkAndSetBoolean() {
         if (!executingTask) {
             executingTask = true;
@@ -140,7 +148,8 @@ public class Process implements Node {
         configFilePath = args[3];
 
         if (args.length != 4) {
-            System.out.println("Usage: [collator host] [collator port] [this node port] [config file path]");
+            System.out.println("Usage: [collator host] [collator port] [this node port] [config file path]" +
+                    "\nAll nodes should be running before the collator is running.");
         } else {
             try {
                 Process process = new Process();

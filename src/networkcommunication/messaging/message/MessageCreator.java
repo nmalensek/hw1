@@ -43,7 +43,8 @@ public class MessageCreator {
 
     /**
      * Sends message to random node, repeats 5 times according to assignment instructions.
-     *
+     * After sending the 5 messages, a shutdown message is sent to the receiver that closes
+     * the socket.
      * @throws IOException
      */
     public synchronized void sendMessageNewSocket(TCPSender sender) throws IOException {

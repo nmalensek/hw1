@@ -36,7 +36,8 @@ public class TCPReceiverThread extends Thread implements Protocol {
     }
 
     /**
-     * Listens for a message coming in.
+     * Listens for a message coming in, breaks from loop on exception. Exceptions
+     * are generally caused by receiving a SHUTDOWN message that closes the socket.
      */
     public void run() {
         int dataLength;

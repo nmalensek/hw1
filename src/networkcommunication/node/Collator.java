@@ -39,6 +39,11 @@ public class Collator implements Node {
 
     }
 
+    /**
+     * Starts the collator by allocating a thread pool, reading the config file, and informing
+     * other nodes about the nodes in the overlay.
+     * @throws IOException
+     */
     private void startUp() throws IOException {
         TCPServerThread collatorServerThread = new TCPServerThread(this, thisNodePort);
         collatorServerThread.start();
@@ -46,6 +51,11 @@ public class Collator implements Node {
         dispatchOverlayInformation();
     }
 
+    /**
+     * Reads a config file containing the nodes that should be present in the overlay
+     * in the format of hostname/ip:port per line.
+     * @throws IOException
+     */
     private void readConfigFileAndCacheConnections() throws IOException {
         List<String> fileLines = Files.readAllLines(Paths.get(configFilePath));
         for (String line : fileLines) {
@@ -62,6 +72,10 @@ public class Collator implements Node {
         System.out.println("Config file successfully read and network information stored.");
     }
 
+    /**
+     * Informs all other nodes of the overlay topology.
+     * @throws IOException
+     */
     private void dispatchOverlayInformation() throws IOException {
         MessagingNodesList messagingNodesList = new MessagingNodesList();
         messagingNodesList.setMessagingNodes(nodeMap);
@@ -104,10 +118,12 @@ public class Collator implements Node {
         }
     }
 
-    private synchronized void removeFinishedNodes(String id) {
-        nodeMapCopy.remove(id);
-    }
-
+    /**
+     * Messages all nodes in the overlay by opening and then closing
+     * a socket connection.
+     * @param message the message that should be sent to all nodes
+     * @throws IOException
+     */
     private void messageAllNodes(Event message) throws IOException {
         System.out.println("Messaging all nodes...");
         for (String node : nodeMap.keySet()) {
@@ -119,6 +135,16 @@ public class Collator implements Node {
         }
         System.out.println("All nodes messaged...");
     }
+
+    /**
+     * Removes a finished node from the copy of the overlay map
+     * so which nodes are still going can be tracked.
+     * @param id
+     */
+    private synchronized void removeFinishedNodes(String id) {
+        nodeMapCopy.remove(id);
+    }
+
 
     private synchronized void printDone() {
         String done = "The following nodes are still going: ";
@@ -150,7 +176,8 @@ public class Collator implements Node {
         numberOfRounds = Integer.parseInt(args[1]);
         thisNodePort = Integer.parseInt(args[2]);
         if (args.length != 3) {
-            System.out.println("Usage: [config file path] [number of rounds] [this node's port]");
+            System.out.println("Usage: [config file path] [number of rounds] [this node's port]" +
+                    "\nAll nodes should be running before the collator is running.");
         } else {
             Collator collator = new Collator();
             try {
