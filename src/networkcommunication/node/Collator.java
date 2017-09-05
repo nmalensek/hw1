@@ -110,7 +110,7 @@ public class Collator implements Node {
                 trafficPrinter.addTotalsToString();
                 trafficPrinter.printTrafficSummary();
                 timeEnd = System.currentTimeMillis();
-                System.out.println("Messaging took: " + (timeEnd - timeStart));
+                System.out.println("Messaging took: " + (timeEnd - timeStart) + "ms (with 15000 ms wait time).");
                 resetCounters();
             }
         }

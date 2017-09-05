@@ -1,4 +1,4 @@
-package networkcommunication.unused;
+package networkcommunication.unused.util;
 
 import java.io.IOException;
 import java.nio.charset.Charset;

@@ -15,9 +15,9 @@ public class ShutdownTest {
     }
 
     private void sendMessage() throws IOException {
-        TCPSender sender = new TCPSender(testSocket);
+        TCPSender sender = new TCPSender();
         ShutdownMessage shutdownMessage = new ShutdownMessage();
-        sender.sendData(shutdownMessage.getBytes());
+        sender.sendToSpecificSocket(testSocket, shutdownMessage.getBytes());
     }
 
     public static void main(String[] args) {

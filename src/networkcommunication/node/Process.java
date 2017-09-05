@@ -30,10 +30,10 @@ public class Process implements Node {
     private String thisNodeID;
     private final CommunicationTracker communicationTracker = new CommunicationTracker();
     private HashMap<String, NodeRecord> nodesInOverlay = new HashMap<>();
-    private TCPSender sender;
+    private TCPSender sender = new TCPSender();
     private boolean executingTask = false;
 
-    public Process() throws UnknownHostException {
+    public Process() throws IOException {
     }
 
     /**

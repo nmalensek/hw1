@@ -1,6 +1,6 @@
 package networkcommunication.test;
 
-import networkcommunication.unused.DetectDeadlocks;
+import networkcommunication.unused.util.DetectDeadlocks;
 
 import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;

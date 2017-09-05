@@ -1,4 +1,4 @@
-package networkcommunication.util;
+package networkcommunication.unused.util;
 
 import networkcommunication.node.NodeRecord;
 
@@ -37,7 +37,7 @@ public class ConfigFileReader {
             int linePort = Integer.parseInt(splitLine[1]);
 
             Socket nodeSocket = new Socket(lineIP, linePort);
-            NodeRecord node = new NodeRecord(lineIP, linePort, nodeSocket);
+            NodeRecord node = new NodeRecord(lineIP, linePort);
             nodesInOverlay.put(line, node);
         }
         System.out.println("Config file successfully read and network information stored.");

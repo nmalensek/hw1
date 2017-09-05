@@ -12,7 +12,7 @@ public class TestConnection {
     public static void main(String[] args) {
         try {
             Socket socket = new Socket(Inet4Address.getLocalHost().getHostName(), 59364);
-            TCPSender sender = new TCPSender(socket);
+            TCPSender sender = new TCPSender();
         } catch (IOException e) {
             e.printStackTrace();
         }

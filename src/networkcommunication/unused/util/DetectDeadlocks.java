@@ -1,4 +1,4 @@
-package networkcommunication.unused;
+package networkcommunication.unused.util;
 
 import java.lang.management.*;
 import java.util.logging.Level;
