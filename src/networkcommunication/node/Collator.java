@@ -13,7 +13,6 @@ import networkcommunication.transport.TCPServerThread;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -31,11 +30,11 @@ public class Collator implements Node {
     private static TrafficPrinter trafficPrinter = new TrafficPrinter();
     private HashMap<String, NodeRecord> nodeMap = new HashMap<>();
     private HashMap<String, NodeRecord> nodeMapCopy;
-    private TCPSender sender;
+    private TCPSender sender = new TCPSender();
     private long timeStart;
     private long timeEnd;
 
-    public Collator() throws UnknownHostException {
+    public Collator() throws IOException {
 
     }
 
@@ -63,10 +62,9 @@ public class Collator implements Node {
                 String lineHost = splitLine[0];
                 int linePort = Integer.parseInt(splitLine[1]);
 
-                Socket nodeSocket = new Socket(lineHost, linePort);
-                NodeRecord node = new NodeRecord(lineHost, linePort, nodeSocket);
+//                Socket nodeSocket = new Socket(lineHost, linePort);
+                NodeRecord node = new NodeRecord(lineHost, linePort);
                 nodeMap.put(line, node);
-                sender = new TCPSender(nodeSocket);
         }
         nodeMapCopy = new HashMap<>(nodeMap);
         System.out.println("Config file successfully read and network information stored.");
@@ -171,7 +169,7 @@ public class Collator implements Node {
         finishedNodes.set(0);
     }
 
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) throws IOException {
         configFilePath = args[0];
         numberOfRounds = Integer.parseInt(args[1]);
         thisNodePort = Integer.parseInt(args[2]);

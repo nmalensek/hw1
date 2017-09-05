@@ -15,17 +15,17 @@ public class TCPSender {
     private Socket socketToSendTo;
     private DataOutputStream dataOutputStream;
 
-    public TCPSender(Socket socketToSendTo) throws IOException {
-        this.socketToSendTo = socketToSendTo;
-        dataOutputStream = new DataOutputStream(new BufferedOutputStream(socketToSendTo.getOutputStream()));
+    public TCPSender() throws IOException {
+//        this.socketToSendTo = socketToSendTo;
+//        dataOutputStream = new DataOutputStream(new BufferedOutputStream(socketToSendTo.getOutputStream()));
     }
 
-    public synchronized void sendData(byte[] dataToSend) throws IOException {
-        int dataLength = dataToSend.length;
-        dataOutputStream.writeInt(dataLength);
-        dataOutputStream.write(dataToSend, 0, dataLength);
-        dataOutputStream.flush();
-    }
+//    public synchronized void sendData(byte[] dataToSend) throws IOException {
+//        int dataLength = dataToSend.length;
+//        dataOutputStream.writeInt(dataLength);
+//        dataOutputStream.write(dataToSend, 0, dataLength);
+//        dataOutputStream.flush();
+//    }
 
     public synchronized void sendToSpecificSocket(Socket socket, byte[] data) throws IOException { //was synced
         try {
@@ -39,8 +39,8 @@ public class TCPSender {
         }
     }
 
-    public void closeStreams() throws IOException {
-        dataOutputStream.close();
-    }
+//    public void closeStreams() throws IOException {
+//        dataOutputStream.close();
+//    }
 
 }
