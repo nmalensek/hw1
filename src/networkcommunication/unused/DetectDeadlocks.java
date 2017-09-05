@@ -1,7 +1,6 @@
-package networkcommunication.node;
+package networkcommunication.unused;
 
 import java.lang.management.*;
-import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

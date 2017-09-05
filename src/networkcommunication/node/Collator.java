@@ -10,7 +10,6 @@ import networkcommunication.messaging.traffic.PullTrafficSummary;
 import networkcommunication.messaging.traffic.TrafficSummary;
 import networkcommunication.transport.TCPSender;
 import networkcommunication.transport.TCPServerThread;
-import networkcommunication.util.ConfigFileWriter;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -66,9 +65,6 @@ public class Collator implements Node {
     private void dispatchOverlayInformation() throws IOException {
         MessagingNodesList messagingNodesList = new MessagingNodesList();
         messagingNodesList.setMessagingNodes(nodeMap);
-//        for (NodeRecord node : nodeMap.values()) {
-//            node.getSender().sendData(messagingNodesList.getBytes());
-//        }
         messageAllNodes(messagingNodesList);
     }
 
@@ -104,7 +100,6 @@ public class Collator implements Node {
                 timeEnd = System.currentTimeMillis();
                 System.out.println("Messaging took: " + (timeEnd - timeStart));
                 resetCounters();
-//                ConfigFileWriter.getInstance().clearFile(configFilePath);
             }
         }
     }
@@ -120,7 +115,6 @@ public class Collator implements Node {
             int nodePort = Integer.parseInt(node.split(":")[1]);
             Socket socket = new Socket(nodeHost, nodePort);
             sender.sendToSpecificSocket(socket, message.getBytes());
-            System.out.println(node);
             socket.close();
         }
         System.out.println("All nodes messaged...");
@@ -137,17 +131,11 @@ public class Collator implements Node {
     private void initiateMessagingProcess() throws IOException {
         TaskInitiate taskInitiate = new TaskInitiate();
         taskInitiate.setRounds(numberOfRounds);
-//        for (NodeRecord node : nodeMap.values()) {
-//            node.getSender().sendData(taskInitiate.getBytes());
-//        }
         messageAllNodes(taskInitiate);
     }
 
     private void pullTrafficSummary() throws IOException {
         PullTrafficSummary pullTrafficSummary = new PullTrafficSummary();
-//        for (NodeRecord nodeRecord : nodeMap.values()) {
-//            nodeRecord.getSender().sendData(pullTrafficSummary.getBytes());
-//        }
         messageAllNodes(pullTrafficSummary);
     }
 
@@ -161,11 +149,15 @@ public class Collator implements Node {
         configFilePath = args[0];
         numberOfRounds = Integer.parseInt(args[1]);
         thisNodePort = Integer.parseInt(args[2]);
-        Collator collator = new Collator();
-        try {
-            collator.startUp();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (args.length != 3) {
+            System.out.println("Usage: [config file path] [number of rounds] [this node's port]");
+        } else {
+            Collator collator = new Collator();
+            try {
+                collator.startUp();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -4,7 +4,6 @@ import networkcommunication.collate.CommunicationTracker;
 import networkcommunication.messaging.Event;
 import networkcommunication.messaging.message.Message;
 import networkcommunication.messaging.message.MessageCreator;
-import networkcommunication.messaging.storenetworkinfo.MessagingNodesList;
 import networkcommunication.messaging.storenetworkinfo.MessagingNodesListReceive;
 import networkcommunication.messaging.task.ReadySend;
 import networkcommunication.messaging.task.TaskComplete;
@@ -13,20 +12,12 @@ import networkcommunication.messaging.traffic.PullTrafficSummary;
 import networkcommunication.messaging.traffic.TrafficSummary;
 import networkcommunication.transport.TCPSender;
 import networkcommunication.transport.TCPServerThread;
-import networkcommunication.util.ConfigFileReader;
-import networkcommunication.util.ConfigFileWriter;
 
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.net.Inet4Address;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Process implements Node {
 
@@ -149,11 +140,15 @@ public class Process implements Node {
         thisNodePort = Integer.parseInt(args[2]);
         configFilePath = args[3];
 
-        try {
-            Process process = new Process();
-            process.startUp();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        if (args.length != 4) {
+            System.out.println("Usage: [collator host] [collator port] [this node port] [config file path]");
+        } else {
+            try {
+                Process process = new Process();
+                process.startUp();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
         }
     }
 }
