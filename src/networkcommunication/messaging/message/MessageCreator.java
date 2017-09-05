@@ -21,20 +21,18 @@ public class MessageCreator {
 
     private HashMap<String, NodeRecord> nodeMap;
     private List<String> randomNodes = new ArrayList<>();
-    private String hostToMessage;
-    private int portToMessage;
     private NodeRecord nodeToMessage;
     private CommunicationTracker communicationTracker;
-    private static final Logger logger = Logger.getLogger(Process.class.getName());
-    private static final Handler consoleHandler = new ConsoleHandler();
+//    private static final Logger logger = Logger.getLogger(Process.class.getName());
+//    private static final Handler consoleHandler = new ConsoleHandler();
 
     public MessageCreator(CommunicationTracker communicationTracker, HashMap<String, NodeRecord> nodeMap) {
         this.communicationTracker = communicationTracker;
         this.nodeMap = nodeMap;
         addNodesToRandomList();
-        consoleHandler.setLevel(Level.ALL);
-        logger.setLevel(Level.ALL);
-        logger.addHandler(consoleHandler);
+//        consoleHandler.setLevel(Level.ALL);
+//        logger.setLevel(Level.ALL);
+//        logger.addHandler(consoleHandler);
     }
 
     private void addNodesToRandomList() {
@@ -65,33 +63,27 @@ public class MessageCreator {
                     communicationTracker.incrementSendTracker();
                     communicationTracker.incrementSendSummation(message.getPayload());
                 } catch (Exception e) {
-                        logger.log(Level.SEVERE, "SOMETHING IS WRONG");
+                    System.out.println("SOMETHING IS WRONG");
                     e.printStackTrace();
                 }
-
-//                if (numMessages == 4) {
-//                    logger.log(Level.FINER, "Sent 5 messages");
-//                }
             }
         } finally {
             ShutdownMessage shutdownMessage = new ShutdownMessage();
             sender.sendToSpecificSocket(socketToMessage, shutdownMessage.getBytes());
-//            socketToMessage.setSoLinger(true, 0);
-//            socketToMessage.close();
         }
 //        logger.exiting("MessageCreator", "sendMessageNewSocket");
     }
 
-    public void sendMessageSameSocket(TCPSender sender) throws IOException {
-        chooseRandomNodeRecord();
-        Message message = new Message();
-        for (int numMessages = 0; numMessages < 5; numMessages++) {
-            message.setPayload();
-            sender.sendToSpecificSocket(nodeToMessage.getCommunicationSocket(), message.getBytes());
-            communicationTracker.incrementSendTracker();
-            communicationTracker.incrementSendSummation(message.getPayload());
-        }
-    }
+//    public void sendMessageSameSocket(TCPSender sender) throws IOException {
+//        chooseRandomNodeRecord();
+//        Message message = new Message();
+//        for (int numMessages = 0; numMessages < 5; numMessages++) {
+//            message.setPayload();
+//            sender.sendToSpecificSocket(nodeToMessage.getCommunicationSocket(), message.getBytes());
+//            communicationTracker.incrementSendTracker();
+//            communicationTracker.incrementSendSummation(message.getPayload());
+//        }
+//    }
 
     /**
      * Chooses random node from overlay to message.
@@ -101,9 +93,9 @@ public class MessageCreator {
         nodeToMessage = nodeMap.get(randomNodes.get(randomNode));
     }
 
-    private void chooseRandomNodeRecord() {
-        int randomNode = ThreadLocalRandom.current().nextInt(0, randomNodes.size());
-        nodeToMessage = nodeMap.get(randomNodes.get(randomNode));
-    }
+//    private void chooseRandomNodeRecord() {
+//        int randomNode = ThreadLocalRandom.current().nextInt(0, randomNodes.size());
+//        nodeToMessage = nodeMap.get(randomNodes.get(randomNode));
+//    }
 
 }

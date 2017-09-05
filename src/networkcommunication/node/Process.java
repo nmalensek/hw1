@@ -39,7 +39,6 @@ public class Process implements Node {
     private void startUp() throws IOException {
         createServerThread();
         thisNodeID = thisNodeIP + ":" + thisNodePort;
-//        ConfigFileWriter.getInstance().writeToConfigFile(configFilePath, thisNodeID);
     }
 
     private void createServerThread() throws IOException {
@@ -95,7 +94,7 @@ public class Process implements Node {
         Socket nodeSocket = new Socket(hostName, port);
         NodeRecord node = new NodeRecord(hostName, port, nodeSocket);
         nodesInOverlay.put(hostName + ":" + port, node);
-        System.out.println(hostName + ":" + port);
+//        System.out.println(hostName + ":" + port);
     }
 
     private void connectToCollator() throws IOException {
